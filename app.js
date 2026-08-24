@@ -35,6 +35,7 @@ const formatMoney = (value) => new Intl.NumberFormat("es-PE", {
 }).format(value).replace("PEN", "S/");
 const formatCompactMoney = (value) => `S/ ${(value / 1000000).toFixed(1)} M`;
 const formatPercent = (value, digits = 1) => `${value >= 0 ? "+" : ""}${(value * 100).toFixed(digits)}%`;
+const formatShare = (value, digits = 1) => `${(value * 100).toFixed(digits)}%`;
 
 function projectMetrics(project) {
   const priceM2 = Math.round(project.priceM2Usd * project.exchangeRate);
@@ -45,6 +46,11 @@ function projectMetrics(project) {
   const availableShare = project.availableUnits / Math.max(project.totalUnits, 1);
   const targetSales30d = project.availableUnits / 12;
   const parkingBalance = project.parkingAvailable - project.parkingRequired;
+  const soldShareApr = project.soldUnitsApr / Math.max(project.totalUnits, 1);
+  const estimatedSoldValuePen = project.soldUnitsApr * project.averageSoldPricePen;
+  const ticketMayPen = project.salesValueMayPen / Math.max(project.minutasMay, 1);
+  const salesMixMay = project.salesValueMayPen / Math.max(sourceData?.meta?.reportedSalesValueMayPen || 1, 1);
+  const pipelineCoverage = project.pipelineValueMayPen / Math.max(project.salesValueMayPen, 1);
   return {
     ...project,
     priceM2,
@@ -55,7 +61,12 @@ function projectMetrics(project) {
     monthsStock,
     availableShare,
     targetSales30d,
-    parkingBalance
+    parkingBalance,
+    soldShareApr,
+    estimatedSoldValuePen,
+    ticketMayPen,
+    salesMixMay,
+    pipelineCoverage
   };
 }
 
@@ -269,6 +280,126 @@ function renderAbsorption(projects) {
   );
 }
 
+function renderSalesKpis(projects) {
+  const soldUnits = sum(projects, "soldUnitsApr");
+  const totalUnits = sum(projects, "totalUnits");
+  const historicalValue = sum(projects, "estimatedSoldValuePen");
+  const mayValue = sum(projects, "salesValueMayPen");
+  const mayMinutas = sum(projects, "minutasMay");
+  const pipelineValue = sum(projects, "pipelineValueMayPen");
+  const pipelineUnits = sum(projects, "pipelineUnitsMay");
+  byId("salesKpiSoldUnits").textContent = formatInteger(soldUnits);
+  byId("salesKpiSoldContext").textContent = `${formatShare(soldUnits / Math.max(totalUnits, 1))} de ${formatInteger(totalUnits)} unidades · abril 2026`;
+  byId("salesKpiHistoricalValue").textContent = formatCompactMoney(historicalValue);
+  byId("salesKpiMayValue").textContent = formatCompactMoney(mayValue);
+  byId("salesKpiTicket").textContent = `ticket promedio ${formatMoney(mayValue / Math.max(mayMinutas, 1))}`;
+  byId("salesKpiPipeline").textContent = formatCompactMoney(pipelineValue);
+  byId("salesKpiPipelineUnits").textContent = `${formatInteger(pipelineUnits)} unidades · mayo 2026`;
+}
+
+function renderSoldProgress(projects) {
+  const target = byId("soldProgressChart");
+  const ordered = [...projects].sort((a, b) => b.soldShareApr - a.soldShareApr);
+  const width = 660;
+  const rowHeight = 38;
+  const top = 42;
+  const bottom = 42;
+  const left = 136;
+  const right = 74;
+  const height = Math.max(250, top + bottom + ordered.length * rowHeight);
+  const xScale = scaleLinear(0, 1, left, width - right);
+  const ticks = [0, 0.25, 0.5, 0.75, 1];
+  const grid = ticks.map((tick) => `
+    <line class="chart-gridline" x1="${xScale(tick)}" x2="${xScale(tick)}" y1="${top - 16}" y2="${height - bottom + 5}" />
+    <text class="chart-tick" x="${xScale(tick)}" y="${height - 15}" text-anchor="middle">${formatShare(tick, 0)}</text>`).join("");
+  const bars = ordered.map((project, index) => {
+    const y = top + index * rowHeight;
+    const fullWidth = width - right - left;
+    const soldWidth = Math.max(0, xScale(project.soldShareApr) - left);
+    return `
+      <text class="bar-label" x="${left - 9}" y="${y + 15}" text-anchor="end">${project.name}</text>
+      <rect class="sales-remaining" x="${left}" y="${y}" width="${fullWidth}" height="19" />
+      <rect class="sales-sold" data-project-id="${project.id}" x="${left}" y="${y}" width="${soldWidth}" height="19">
+        <title>${project.name}: ${formatInteger(project.soldUnitsApr)} de ${formatInteger(project.totalUnits)} vendidas (${formatShare(project.soldShareApr)})</title>
+      </rect>
+      <text class="bar-value sales-progress-value" x="${width - right + 8}" y="${y + 15}">${formatShare(project.soldShareApr)}</text>`;
+  }).join("");
+  target.innerHTML = svgFrame(
+    "sold-progress-bars",
+    "Avance vendido acumulado por proyecto",
+    ordered.length ? `${ordered.length} proyectos ordenados por porcentaje vendido al corte de abril de 2026.` : "No hay proyectos para los filtros seleccionados.",
+    width,
+    height,
+    `${grid}${bars}`
+  );
+}
+
+function renderSalesValue(projects) {
+  const target = byId("salesValueChart");
+  const ordered = [...projects].sort((a, b) => b.salesValueMayPen - a.salesValueMayPen);
+  const width = 680;
+  const rowHeight = 38;
+  const top = 42;
+  const bottom = 48;
+  const left = 136;
+  const right = 132;
+  const height = Math.max(250, top + bottom + ordered.length * rowHeight);
+  const maxValue = Math.max(1000000, ...ordered.map((project) => project.salesValueMayPen)) * 1.08;
+  const xScale = scaleLinear(0, maxValue, left, width - right);
+  const tickStep = Math.max(1000000, Math.ceil(maxValue / 5 / 1000000) * 1000000);
+  const ticks = [];
+  for (let tick = 0; tick <= maxValue; tick += tickStep) ticks.push(tick);
+  const grid = ticks.map((tick) => `
+    <line class="chart-gridline" x1="${xScale(tick)}" x2="${xScale(tick)}" y1="${top - 16}" y2="${height - bottom + 5}" />
+    <text class="chart-tick" x="${xScale(tick)}" y="${height - 18}" text-anchor="middle">S/${(tick / 1000000).toFixed(0)}M</text>`).join("");
+  const bars = ordered.map((project, index) => {
+    const y = top + index * rowHeight;
+    const barWidth = Math.max(0, xScale(project.salesValueMayPen) - left);
+    return `
+      <text class="bar-label" x="${left - 9}" y="${y + 15}" text-anchor="end">${project.name}</text>
+      <rect class="bar-track" x="${left}" y="${y}" width="${width - right - left}" height="19" />
+      <rect class="sales-value-bar" data-project-id="${project.id}" x="${left}" y="${y}" width="${barWidth}" height="19">
+        <title>${project.name}: ${formatMoney(project.salesValueMayPen)} en ${formatInteger(project.minutasMay)} minutas; ticket medio ${formatMoney(project.ticketMayPen)}</title>
+      </rect>
+      <text class="bar-value sales-ticket-label" x="${width - right + 8}" y="${y + 15}">${formatCompactMoney(project.salesValueMayPen)} · ${formatMoney(project.ticketMayPen)}</text>`;
+  }).join("");
+  const axis = `<text class="chart-label" x="${(left + width - right) / 2}" y="${height - 3}" text-anchor="middle">Valor de ventas de mayo de 2026</text>`;
+  target.innerHTML = svgFrame(
+    "sales-value-bars",
+    "Valor de ventas de mayo por proyecto",
+    ordered.length ? `${ordered.length} proyectos ordenados por valor de minutas activas de mayo.` : "No hay proyectos para los filtros seleccionados.",
+    width,
+    height,
+    `${grid}${bars}${axis}`
+  );
+}
+
+function renderSalesTable(projects) {
+  const ordered = [...projects].sort((a, b) => b.salesValueMayPen - a.salesValueMayPen);
+  byId("salesRows").innerHTML = ordered.map((project) => `
+    <tr class="${project.id === state.selectedId ? "row-selected" : ""}">
+      <td><button class="row-button" type="button" data-select-project="${project.id}">${project.name}</button></td>
+      <td class="num">${formatInteger(project.soldUnitsApr)}</td>
+      <td class="num">${formatShare(project.soldShareApr)}</td>
+      <td class="num">${formatMoney(project.averageSoldPricePen)}</td>
+      <td class="num" title="Estimado: unidades vendidas × precio promedio vendido">${formatCompactMoney(project.estimatedSoldValuePen)}</td>
+      <td class="num">${formatInteger(project.minutasMay)}</td>
+      <td class="num">${formatMoney(project.salesValueMayPen)}</td>
+      <td class="num">${formatMoney(project.ticketMayPen)}</td>
+      <td class="num">${formatShare(project.salesMixMay)}</td>
+      <td class="num"><span class="sales-pipeline-cell"><strong>${formatCompactMoney(project.pipelineValueMayPen)}</strong><small>${formatInteger(project.pipelineUnitsMay)} unid.</small></span></td>
+      <td class="num">${project.presaleConsideredUnits == null ? "—" : formatDecimal(project.presaleConsideredUnits)}</td>
+    </tr>`).join("");
+  byId("salesVisibleProjectCount").textContent = projects.length;
+}
+
+function renderSales(projects) {
+  renderSalesKpis(projects);
+  renderSoldProgress(projects);
+  renderSalesValue(projects);
+  renderSalesTable(projects);
+}
+
 function signalMarkup(project) {
   return `<span class="portfolio-signal"><i class="legend-${project.signal}"></i>${signalLabels[project.signal]}</span>`;
 }
@@ -318,6 +449,10 @@ function renderSelectedProject(projects) {
   byId("selectedValue").textContent = formatCompactMoney(project.availableValue);
   byId("selectedM2").textContent = `${formatMoney(project.priceM2)} / m²`;
   byId("selectedMinutas").textContent = `${formatInteger(project.netSales30d)} en mayo`;
+  byId("selectedSold").textContent = `${formatInteger(project.soldUnitsApr)} unidades`;
+  byId("selectedSoldRate").textContent = formatShare(project.soldShareApr);
+  byId("selectedTicket").textContent = formatMoney(project.ticketMayPen);
+  byId("selectedPipeline").textContent = `${formatCompactMoney(project.pipelineValueMayPen)} · ${formatInteger(project.pipelineUnitsMay)} unid.`;
   byId("experimentProject").value = project.id;
   trackEvent("project_selected", { projectId: project.id, signal: project.signal });
 }
@@ -327,6 +462,7 @@ function renderDashboard(projects) {
   renderKpis(filtered);
   renderScatter(filtered);
   renderAbsorption(filtered);
+  renderSales(filtered);
   renderDecisionQueue(filtered);
   renderPortfolioTable(filtered);
   renderSelectedProject(filtered);
@@ -489,10 +625,18 @@ function setupControls(projects) {
   byId("exportPortfolio").addEventListener("click", () => {
     const filtered = getFilteredProjects(projects);
     downloadCsv("pricing_control_tower_historico_2026_05.csv", [
-      ["snapshot_date", "activity_month", "project_id", "project_name", "phase", "total_units", "available_units", "estimated_available_value_pen", "available_price_m2_usd", "available_price_m2_pen", "sold_price_m2_usd", "price_premium_pct", "separations_may", "minutas_may", "sales_value_may_pen", "months_stock_at_may_run_rate", "parking_available", "parking_required", "pressure_score", "signal"],
-      ...filtered.map((project) => [sourceData.meta.snapshotDate, sourceData.meta.activityMonth, project.id, project.name, project.phase, project.totalUnits, project.availableUnits, project.availableValue, project.priceM2Usd, project.priceM2, project.soldPriceM2Usd, project.pricePremiumPct, project.separationsMay, project.minutasMay, project.salesValueMayPen, project.monthsStock, project.parkingAvailable, project.parkingRequired, project.pressure, project.signal])
+      ["snapshot_date", "activity_month", "project_id", "project_name", "phase", "total_units", "available_units", "estimated_available_value_pen", "available_price_m2_usd", "available_price_m2_pen", "sold_price_m2_usd", "price_premium_pct", "separations_may", "minutas_may", "sales_value_may_pen", "months_stock_at_may_run_rate", "parking_available", "parking_required", "pressure_score", "signal", "sold_units_apr", "for_sale_units_apr", "average_sold_unit_price_pen", "estimated_sold_value_pen", "ticket_may_pen", "sales_mix_may", "pipeline_units_may", "pipeline_value_may_pen", "pipeline_coverage", "presale_considered_units"],
+      ...filtered.map((project) => [sourceData.meta.snapshotDate, sourceData.meta.activityMonth, project.id, project.name, project.phase, project.totalUnits, project.availableUnits, project.availableValue, project.priceM2Usd, project.priceM2, project.soldPriceM2Usd, project.pricePremiumPct, project.separationsMay, project.minutasMay, project.salesValueMayPen, project.monthsStock, project.parkingAvailable, project.parkingRequired, project.pressure, project.signal, project.soldUnitsApr, project.forSaleUnitsApr, project.averageSoldPricePen, project.estimatedSoldValuePen, project.ticketMayPen, project.salesMixMay, project.pipelineUnitsMay, project.pipelineValueMayPen, project.pipelineCoverage, project.presaleConsideredUnits])
     ]);
     trackEvent("portfolio_snapshot_exported", { projects: filtered.length });
+  });
+  byId("exportSales").addEventListener("click", () => {
+    const filtered = getFilteredProjects(projects);
+    downloadCsv("pricing_ventas_por_proyecto_2026_05.csv", [
+      ["snapshot_date", "activity_month", "project_id", "project_name", "phase", "total_units", "sold_units_apr", "for_sale_units_apr", "available_units_apr", "sold_share_apr", "average_sold_unit_price_pen", "estimated_sold_value_pen", "separations_may", "minutas_may", "sales_value_may_pen", "ticket_may_pen", "sales_mix_may", "pipeline_units_may", "pipeline_value_may_pen", "pipeline_coverage", "presale_considered_units", "source_pages"],
+      ...filtered.map((project) => [sourceData.meta.snapshotDate, sourceData.meta.activityMonth, project.id, project.name, project.phase, project.totalUnits, project.soldUnitsApr, project.forSaleUnitsApr, project.availableUnits, project.soldShareApr, project.averageSoldPricePen, project.estimatedSoldValuePen, project.separationsMay, project.minutasMay, project.salesValueMayPen, project.ticketMayPen, project.salesMixMay, project.pipelineUnitsMay, project.pipelineValueMayPen, project.pipelineCoverage, project.presaleConsideredUnits, project.sourcePages.join("|")])
+    ]);
+    trackEvent("sales_snapshot_exported", { projects: filtered.length });
   });
   byId("exportEvidence").addEventListener("click", () => {
     downloadCsv("pricing_control_tower_evidence.csv", [

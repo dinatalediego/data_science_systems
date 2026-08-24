@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
-      content="Pricing Control Tower histórico: pricing, stock, minutas y experimentos para nueve proyectos inmobiliarios."
+      content="Pricing Control Tower histórico: pricing, stock, avance vendido, ventas, tubería y experimentos para nueve proyectos inmobiliarios."
     />
     <meta name="theme-color" content="#102a2a" />
     <meta property="og:title" content="Data Science Systems · Pricing Control Tower" />
@@ -31,11 +31,12 @@
       </a>
       <nav aria-label="Navegación principal">
         <a href="#overview">Portfolio</a>
+        <a href="#ventas">Ventas</a>
         <a href="#decisiones">Decisiones</a>
         <a href="#experimento">Experimento</a>
         <a href="#sistema">Sistema DS/BI</a>
       </nav>
-      <div class="header-state"><span></span> HISTÓRICO · V0.2 <a id="logoutButton" href="/api/logout">Salir</a></div>
+      <div class="header-state"><span></span> HISTÓRICO · V0.3 <a id="logoutButton" href="/api/logout">Salir</a></div>
     </header>
 
     <main id="main">
@@ -138,6 +139,103 @@
         </div>
       </section>
 
+      <section class="dashboard-section sales-section" id="ventas">
+        <div class="section-heading">
+          <div>
+            <p class="section-kicker">01B / VENTAS POR PROYECTO</p>
+            <h2>Cuánto se vendió, a qué ticket y qué sigue en tubería</h2>
+          </div>
+          <p>
+            Separa tres lecturas que no deben confundirse: avance vendido acumulado al corte de abril,
+            producción de minutas en mayo y tubería comercial abierta al cierre del mes.
+          </p>
+        </div>
+
+        <div class="sales-kpi-grid" aria-label="Indicadores de ventas del portfolio filtrado">
+          <article>
+            <span>Vendidas acumuladas</span>
+            <strong id="salesKpiSoldUnits">—</strong>
+            <small id="salesKpiSoldContext">unidades · abril 2026</small>
+          </article>
+          <article>
+            <span>Valor vendido histórico</span>
+            <strong id="salesKpiHistoricalValue">—</strong>
+            <small>estimado: vendidas × precio promedio vendido</small>
+          </article>
+          <article class="sales-kpi-accent">
+            <span>Valor de ventas mayo</span>
+            <strong id="salesKpiMayValue">—</strong>
+            <small id="salesKpiTicket">ticket promedio —</small>
+          </article>
+          <article>
+            <span>Tubería abierta</span>
+            <strong id="salesKpiPipeline">—</strong>
+            <small id="salesKpiPipelineUnits">— unidades · mayo 2026</small>
+          </article>
+        </div>
+
+        <div class="visual-grid sales-visual-grid">
+          <article class="visual-panel">
+            <header>
+              <div>
+                <span>¿QUÉ PARTE DEL PROYECTO YA SE VENDIÓ?</span>
+                <h3>Avance vendido acumulado</h3>
+              </div>
+              <div class="legend" aria-label="Leyenda del avance vendido">
+                <span><i class="legend-sold"></i> Vendido</span>
+                <span><i class="legend-remaining"></i> Por vender</span>
+              </div>
+            </header>
+            <div id="soldProgressChart" class="chart-shell" aria-live="polite"></div>
+            <p class="chart-note">Barras exactas sobre el stock total reportado. “Por vender” incluye unidades no disponibles o separadas cuando el reporte aún no las clasifica como vendidas.</p>
+          </article>
+
+          <article class="visual-panel">
+            <header>
+              <div>
+                <span>¿DÓNDE SE GENERÓ EL VALOR DEL MES?</span>
+                <h3>Valor de minutas de mayo</h3>
+              </div>
+            </header>
+            <div id="salesValueChart" class="chart-shell" aria-live="polite"></div>
+            <p class="chart-note">Valor reportado de las minutas activas de mayo; la etiqueta muestra el ticket medio mensual por proyecto.</p>
+          </article>
+        </div>
+
+        <div class="portfolio-table-head sales-table-head">
+          <div>
+            <span>DETALLE COMERCIAL COMPLETO</span>
+            <p><strong id="salesVisibleProjectCount">9</strong> proyectos visibles · sin filas de clientes ni unidades identificables</p>
+          </div>
+          <button id="exportSales" class="quiet-button" type="button">Descargar ventas CSV ↓</button>
+        </div>
+        <div class="table-wrap">
+          <table class="portfolio-table sales-table">
+            <thead>
+              <tr>
+                <th>Proyecto</th>
+                <th class="num">Vendidas abr.</th>
+                <th class="num">Avance vendido</th>
+                <th class="num">Precio prom. vendido</th>
+                <th class="num">Valor hist. estimado</th>
+                <th class="num">Minutas mayo</th>
+                <th class="num">Ventas mayo</th>
+                <th class="num">Ticket mayo</th>
+                <th class="num">Mix mayo</th>
+                <th class="num">Tubería</th>
+                <th class="num">Preventa consid.</th>
+              </tr>
+            </thead>
+            <tbody id="salesRows"></tbody>
+          </table>
+        </div>
+        <p class="sales-method-note">
+          El valor vendido histórico es una estimación agregada, no la suma de transacciones: unidades vendidas × precio promedio vendido.
+          El mix de mayo se calcula sobre S/ 16,122,261 y la tubería por proyecto usa valores redondeados del reporte.
+          “Preventa considerada” solo aplica a los cinco proyectos con ese bloque en la fuente.
+        </p>
+      </section>
+
       <section class="dashboard-section decision-section" id="decisiones">
         <div class="section-heading">
           <div>
@@ -182,6 +280,10 @@
               <div><dt>Valor stock</dt><dd id="selectedValue">—</dd></div>
               <div><dt>Precio / m²</dt><dd id="selectedM2">—</dd></div>
               <div><dt>Minutas</dt><dd id="selectedMinutas">—</dd></div>
+              <div><dt>Vendidas acum.</dt><dd id="selectedSold">—</dd></div>
+              <div><dt>Avance vendido</dt><dd id="selectedSoldRate">—</dd></div>
+              <div><dt>Ticket mayo</dt><dd id="selectedTicket">—</dd></div>
+              <div><dt>Tubería</dt><dd id="selectedPipeline">—</dd></div>
             </dl>
             <a class="primary-link" href="#experimento">Simular hipótesis para este proyecto <span>↘</span></a>
           </aside>
@@ -317,7 +419,7 @@
         <div class="system-flow" aria-label="Estado del sistema de datos y decisiones">
           <article><span>01 · FUENTE</span><strong>Reporte mayo 2026</strong><p>9 proyectos, agregado histórico.</p><b class="status-ready">VERIFICADO</b></article>
           <i>→</i>
-          <article><span>02 · MÉTRICAS</span><strong>Snapshot histórico</strong><p>Stock, precios, minutas y ventas.</p><b class="status-ready">PUBLICADO</b></article>
+          <article><span>02 · MÉTRICAS</span><strong>Snapshot histórico</strong><p>Stock, precios, avance vendido, ventas y tubería.</p><b class="status-ready">PUBLICADO</b></article>
           <i>→</i>
           <article><span>03 · DECISIÓN</span><strong>Regla V1</strong><p>Presión auditable, sin ML.</p><b class="status-ready">ACTIVA</b></article>
           <i>→</i>
@@ -354,7 +456,7 @@
           <div>
             <p>
               Grano mínimo: <code>snapshot_date + project_id</code>. La versión histórica ya contiene stock,
-              precio/m², separaciones, minutas, valor vendido y balance de estacionamientos. Para operar en vivo
+              precio/m², avance vendido, ticket, separaciones, minutas, valor vendido, tubería y balance de estacionamientos. Para operar en vivo
               aún se requieren caídas, leads, días en stock e historia de cambios de precio.
               La vista candidata es <code>analytics.v_pricing_project_snapshot</code>; el esquema está documentado
               en <code>schemas/pricing_snapshot.schema.json</code>.

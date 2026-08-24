@@ -4,15 +4,19 @@ Sistema histórico de Data Science + Business Intelligence para gobernar pricing
 
 `dato → métrica → señal → decisión → resultado observado`
 
-## Qué contiene la v0.2
+## Qué contiene la v0.3
 
 - Nueve proyectos reales: Tizón y Bueno, Edificio Urbanzen, Fénix, Alicanto, Capadocia, Modena, Sialia, Matera y Torre Nápoles.
 - Stock y precios de abril de 2026; separaciones, minutas y valor vendido de mayo de 2026.
+- Avance vendido acumulado, precio promedio vendido y valorización histórica estimada por proyecto.
+- Ticket y mix de ventas de mayo, tubería abierta y preventa considerada cuando aplica.
 - Scatter de precio disponible/m² frente a meses de stock; el tamaño representa valor estimado del inventario.
 - Comparación de minutas de mayo frente al ritmo calculado para agotar stock en doce meses.
+- Dos visualizaciones adicionales: avance vendido y valor mensual por proyecto, con cifras exactas en tabla.
 - Cola de decisiones ordenada por una regla V1 auditable.
 - Simulador de precio con elasticidad explícitamente asumida.
 - Adopción de hipótesis, registro de resultados, persistencia local y descarga CSV.
+- Exportación CSV comercial independiente, además del snapshot integral existente.
 - Acceso web mediante contraseña y cookie `HttpOnly` de ocho horas.
 
 ## Fuente y privacidad
@@ -22,6 +26,10 @@ La fuente es el **Reporte Comercial · Mayo 2026**. Solo se publican métricas a
 El valor de stock mostrado es una estimación:
 
 `stock disponible × precio promedio de las unidades disponibles`
+
+El valor vendido histórico también es una estimación agregada:
+
+`unidades vendidas × precio promedio de las unidades vendidas`
 
 La contraseña y el secreto de sesión no están almacenados en GitHub: viven únicamente como variables sensibles de Vercel. El acceso restringe la aplicación desplegada; los agregados versionados permanecen visibles en el repositorio público por decisión del propietario.
 
