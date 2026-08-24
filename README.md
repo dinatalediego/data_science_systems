@@ -17,7 +17,7 @@ Primer sistema demostrativo de Data Science + Business Intelligence para goberna
 
 ## Estado de los datos
 
-Los nombres de proyecto son reales; **todas las cifras incluidas son demostrativas**. La aplicación no debe usarse todavía para ejecutar cambios comerciales.
+Los proyectos se muestran anonimizados y **todas las cifras incluidas son demostrativas**. La aplicación no debe usarse todavía para ejecutar cambios comerciales. El mapeo con nombres reales debe incorporarse únicamente desde una fuente privada autorizada.
 
 La integración productiva prevista usa un snapshot por proyecto:
 
@@ -69,4 +69,3 @@ La v0.1 termina cuando el frontend, la regla y el registro de outcomes funcionan
 3. una vista Gold validada contra CRM;
 4. partición temporal para comparar baseline y challenger;
 5. aprobación comercial y guardrails de margen.
-

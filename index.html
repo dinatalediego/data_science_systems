@@ -1,0 +1,381 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Pricing Control Tower: tablero demostrativo de pricing, absorción, inventario y experimentos para proyectos inmobiliarios."
+    />
+    <meta name="theme-color" content="#102a2a" />
+    <meta property="og:title" content="Data Science Systems · Pricing Control Tower" />
+    <meta
+      property="og:description"
+      content="Del dato de inventario a una decisión de precio y su resultado observado."
+    />
+    <title>Pricing Control Tower · Data Science Systems</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script src="data.js" defer></script>
+    <script src="app.js" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Saltar al contenido</a>
+
+    <header class="site-header">
+      <a class="brand" href="#top" aria-label="Data Science Systems, inicio">
+        <span class="brand-mark" aria-hidden="true">D/S</span>
+        <span>
+          <strong>Data Science Systems</strong>
+          <small>Decision intelligence for real estate</small>
+        </span>
+      </a>
+      <nav aria-label="Navegación principal">
+        <a href="#overview">Portfolio</a>
+        <a href="#decisiones">Decisiones</a>
+        <a href="#experimento">Experimento</a>
+        <a href="#sistema">Sistema DS/BI</a>
+      </nav>
+      <div class="header-state"><span></span> DEMO · V0.1</div>
+    </header>
+
+    <main id="main">
+      <section class="hero" id="top">
+        <div>
+          <p class="eyebrow">Pricing control tower · 9 proyectos</p>
+          <h1>Decidir dónde mover precio, antes de moverlo.</h1>
+        </div>
+        <div class="hero-copy">
+          <p>
+            Un tablero para priorizar inventario, contrastar absorción y registrar el resultado de cada
+            hipótesis comercial. La versión inicial usa un dataset demostrativo y deja el contrato listo
+            para conectar las vistas reales del data warehouse.
+          </p>
+          <a href="#decisiones" class="text-link">Abrir cola de decisiones <span>↘</span></a>
+        </div>
+      </section>
+
+      <aside class="demo-banner" aria-label="Advertencia de datos demostrativos">
+        <strong>DATOS DEMOSTRATIVOS</strong>
+        <p id="dataDisclaimer">Los proyectos están anonimizados; las cifras no son operativas.</p>
+        <span id="snapshotLabel">Corte 01 ago 2026</span>
+      </aside>
+
+      <section class="dashboard-section" id="overview">
+        <div class="section-heading">
+          <div>
+            <p class="section-kicker">01 / PORTFOLIO</p>
+            <h2>El estado comercial en una sola lectura</h2>
+          </div>
+          <div class="dashboard-controls" aria-label="Filtros del portfolio">
+            <label>
+              Proyecto
+              <select id="projectFilter">
+                <option value="all">Todos los proyectos</option>
+              </select>
+            </label>
+            <label>
+              Señal
+              <select id="signalFilter">
+                <option value="all">Todas</option>
+                <option value="act">Actuar</option>
+                <option value="hold">Mantener</option>
+                <option value="opportunity">Oportunidad</option>
+              </select>
+            </label>
+          </div>
+        </div>
+
+        <div class="kpi-grid" aria-label="Indicadores del portfolio filtrado">
+          <article>
+            <span>Stock disponible</span>
+            <strong id="kpiUnits">—</strong>
+            <small id="kpiUnitsContext">unidades</small>
+          </article>
+          <article>
+            <span>Valor de stock</span>
+            <strong id="kpiValue">—</strong>
+            <small>precio lista demostrativo</small>
+          </article>
+          <article>
+            <span>Absorción neta 30d</span>
+            <strong id="kpiAbsorption">—</strong>
+            <small id="kpiAbsorptionContext">unidades / mes</small>
+          </article>
+          <article class="kpi-accent">
+            <span>Meses de stock</span>
+            <strong id="kpiMonths">—</strong>
+            <small>stock ÷ absorción neta</small>
+          </article>
+        </div>
+
+        <div class="visual-grid">
+          <article class="visual-panel">
+            <header>
+              <div>
+                <span>¿DÓNDE SE CONCENTRA EL RIESGO?</span>
+                <h3>Precio por m² vs. meses de stock</h3>
+              </div>
+              <div class="legend" aria-label="Leyenda de señales">
+                <span><i class="legend-act"></i> Actuar</span>
+                <span><i class="legend-hold"></i> Mantener</span>
+                <span><i class="legend-opportunity"></i> Oportunidad</span>
+              </div>
+            </header>
+            <div id="scatterChart" class="chart-shell" aria-live="polite"></div>
+            <p class="chart-note">El tamaño representa valor de stock disponible. Los cuadrantes son umbrales editoriales de la demo.</p>
+          </article>
+
+          <article class="visual-panel">
+            <header>
+              <div>
+                <span>¿QUIÉN ESTÁ CUMPLIENDO LA VELOCIDAD?</span>
+                <h3>Absorción actual vs. objetivo</h3>
+              </div>
+            </header>
+            <div id="absorptionChart" class="chart-shell" aria-live="polite"></div>
+            <p class="chart-note">Barra: absorción neta 30d. Marca vertical: objetivo comercial del proyecto.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="dashboard-section decision-section" id="decisiones">
+        <div class="section-heading">
+          <div>
+            <p class="section-kicker">02 / COLA DE DECISIONES</p>
+            <h2>Priorizar la próxima conversación de pricing</h2>
+          </div>
+          <p>
+            La regla V0 combina meses de stock, antigüedad, brecha frente al benchmark y caídas. No sustituye
+            la aprobación comercial: ordena dónde mirar primero.
+          </p>
+        </div>
+
+        <div class="queue-layout">
+          <div class="table-wrap">
+            <table class="decision-table">
+              <thead>
+                <tr>
+                  <th>Prioridad</th>
+                  <th>Proyecto</th>
+                  <th class="num">Presión</th>
+                  <th class="num">Meses stock</th>
+                  <th class="num">Brecha m²</th>
+                  <th>Decisión sugerida</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="decisionRows"></tbody>
+            </table>
+          </div>
+
+          <aside class="selected-project" id="selectedProject" aria-live="polite">
+            <div class="selected-head">
+              <div>
+                <span>PROYECTO SELECCIONADO</span>
+                <h3 id="selectedName">—</h3>
+              </div>
+              <span id="selectedSignal" class="signal-pill">—</span>
+            </div>
+            <p id="selectedReason" class="selected-reason"></p>
+            <dl class="selected-metrics">
+              <div><dt>Stock</dt><dd id="selectedStock">—</dd></div>
+              <div><dt>Valor stock</dt><dd id="selectedValue">—</dd></div>
+              <div><dt>Precio / m²</dt><dd id="selectedM2">—</dd></div>
+              <div><dt>Conversión</dt><dd id="selectedConversion">—</dd></div>
+            </dl>
+            <a class="primary-link" href="#experimento">Simular hipótesis para este proyecto <span>↘</span></a>
+          </aside>
+        </div>
+
+        <div class="portfolio-table-head">
+          <div>
+            <span>PORTFOLIO COMPLETO</span>
+            <p><strong id="visibleProjectCount">9</strong> proyectos visibles</p>
+          </div>
+          <button id="exportPortfolio" class="quiet-button" type="button">Descargar snapshot CSV ↓</button>
+        </div>
+        <div class="table-wrap">
+          <table class="portfolio-table">
+            <thead>
+              <tr>
+                <th>Proyecto</th>
+                <th>Fase</th>
+                <th class="num">Disponibles</th>
+                <th class="num">Precio / m²</th>
+                <th class="num">Absorción 30d</th>
+                <th class="num">Meses stock</th>
+                <th class="num">Días promedio</th>
+                <th>Señal</th>
+              </tr>
+            </thead>
+            <tbody id="portfolioRows"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="experiment-section" id="experimento">
+        <div class="section-heading light-heading">
+          <div>
+            <p class="section-kicker">03 / EXPERIMENTO</p>
+            <h2>De la señal al resultado observado</h2>
+          </div>
+          <p>
+            La simulación usa elasticidad constante como supuesto. Adoptar la hipótesis la congela; registrar
+            el periodo posterior permite medir error sin confundirlo con impacto causal.
+          </p>
+        </div>
+
+        <div class="cycle-strip" aria-label="Ciclo mínimo de pricing">
+          <div><span>01</span><strong>Dato</strong><small>stock + demanda</small></div>
+          <i>→</i>
+          <div><span>02</span><strong>Señal</strong><small>presión auditable</small></div>
+          <i>→</i>
+          <div><span>03</span><strong>Decisión</strong><small>hipótesis acotada</small></div>
+          <i>→</i>
+          <div><span>04</span><strong>Resultado</strong><small>error observado</small></div>
+        </div>
+
+        <div class="experiment-grid">
+          <form id="simulationForm" class="experiment-card">
+            <div class="card-label"><span>A</span> HIPÓTESIS</div>
+            <label>
+              Proyecto
+              <select id="experimentProject"></select>
+            </label>
+            <label class="range-field">
+              <span>Ajuste de precio <output id="priceAdjustmentValue" for="priceAdjustment">−3.0%</output></span>
+              <input id="priceAdjustment" type="range" min="-8" max="4" step="0.5" value="-3" />
+            </label>
+            <label class="range-field">
+              <span>Elasticidad asumida <output id="elasticityValue" for="elasticity">−2.2</output></span>
+              <input id="elasticity" type="range" min="-3.5" max="-0.5" step="0.1" value="-2.2" />
+            </label>
+            <button class="primary-button" type="submit">Recalcular hipótesis <span>↗</span></button>
+            <p class="form-note">Supuesto demostrativo. No es una elasticidad estimada del negocio.</p>
+          </form>
+
+          <article class="experiment-card projection-card">
+            <div class="card-label"><span>B</span> PROYECCIÓN</div>
+            <div class="projection-head">
+              <div>
+                <span id="projectionBadge" class="signal-pill">—</span>
+                <h3 id="projectionTitle">—</h3>
+              </div>
+              <strong id="projectionConfidence">DEMO</strong>
+            </div>
+            <p id="projectionReason"></p>
+            <div class="projection-price">
+              <div><span>Precio / m² actual</span><strong id="currentPriceM2">—</strong></div>
+              <i>→</i>
+              <div><span>Precio / m² propuesto</span><strong id="proposedPriceM2">—</strong></div>
+            </div>
+            <dl class="projection-metrics">
+              <div><dt>Conversión base</dt><dd id="baseConversion">—</dd></div>
+              <div><dt>Conversión proyectada</dt><dd id="projectedConversion">—</dd></div>
+              <div><dt>Absorción proyectada</dt><dd id="projectedAbsorption">—</dd></div>
+              <div><dt>Meses de stock</dt><dd id="projectedMonths">—</dd></div>
+            </dl>
+            <button id="adoptHypothesis" class="secondary-button" type="button">Adoptar y esperar resultado</button>
+          </article>
+        </div>
+
+        <section class="outcome-panel" aria-labelledby="outcomeTitle">
+          <div>
+            <div class="card-label"><span>C</span> RESULTADO OBSERVADO</div>
+            <h3 id="outcomeTitle">Completar el ciclo requiere volver con datos</h3>
+            <p>Registra una ventana posterior comparable. La evidencia queda guardada solo en este navegador.</p>
+            <div class="evidence-meter"><div><span id="evidenceProgress"></span></div><p><strong id="evidenceCount">0/5</strong> resultados para revisar la regla.</p></div>
+          </div>
+          <form id="outcomeForm">
+            <label>Leads observados<input id="actualLeads" type="number" min="1" value="80" required /></label>
+            <label>Separaciones observadas<input id="actualSeparations" type="number" min="0" value="6" required /></label>
+            <label>Absorción neta 30d<input id="actualAbsorption" type="number" min="0" step="0.1" value="2.0" required /></label>
+            <label>Precio logrado / m²<input id="actualPriceM2" type="number" min="1" step="50" value="6000" required /></label>
+            <button class="primary-button" type="submit">Registrar resultado</button>
+          </form>
+          <div id="outcomeResult" class="outcome-result" hidden>
+            <span>LECTURA DEL RESULTADO</span>
+            <strong id="outcomeHeadline">—</strong>
+            <p id="outcomeDetail"></p>
+            <button id="exportEvidence" class="quiet-button dark-quiet" type="button">Descargar evidencia CSV ↓</button>
+          </div>
+        </section>
+      </section>
+
+      <section class="system-section" id="sistema">
+        <div class="section-heading">
+          <div>
+            <p class="section-kicker">04 / SISTEMA DS/BI</p>
+            <h2>Qué está operativo y qué todavía es una promesa</h2>
+          </div>
+          <p>
+            La aplicación separa explícitamente el artefacto demostrativo del sistema productivo que deberá
+            conectarse a `bd_replica_crm`, versionar features y validar challengers.
+          </p>
+        </div>
+
+        <div class="system-flow" aria-label="Estado del sistema de datos y decisiones">
+          <article><span>01 · FUENTE</span><strong>Demo bundle</strong><p>9 proyectos, corte estático.</p><b class="status-ready">LISTO DEMO</b></article>
+          <i>→</i>
+          <article><span>02 · MÉTRICAS</span><strong>Mart de pricing</strong><p>Fórmulas y contratos definidos.</p><b class="status-ready">LISTO DEMO</b></article>
+          <i>→</i>
+          <article><span>03 · DECISIÓN</span><strong>Regla V0</strong><p>Presión auditable, sin ML.</p><b class="status-ready">ACTIVA</b></article>
+          <i>→</i>
+          <article><span>04 · CHALLENGER</span><strong>Modelo ML</strong><p>Requiere historia de precio.</p><b class="status-pending">NO ENTRENADO</b></article>
+          <i>→</i>
+          <article><span>05 · OUTCOME</span><strong>Evidencia local</strong><p>CSV y localStorage.</p><b class="status-partial">PARCIAL</b></article>
+        </div>
+
+        <div class="operating-grid">
+          <article>
+            <span>BUSINESS INTELLIGENCE</span>
+            <h3>Una definición por métrica</h3>
+            <p>Stock, valor, absorción, conversión y meses de stock con fórmula, grano, fuente y responsable.</p>
+          </article>
+          <article>
+            <span>ANALYTICS ENGINEERING</span>
+            <h3>Del RAW al mart confiable</h3>
+            <p>Tests de unicidad, estados normalizados, snapshots de precio y frescura antes de publicar.</p>
+          </article>
+          <article>
+            <span>DATA SCIENCE</span>
+            <h3>Challenger antes que reemplazo</h3>
+            <p>Baseline, validación temporal, calibración, elasticidad heterogénea y promoción controlada.</p>
+          </article>
+          <article>
+            <span>PRICING + COMERCIAL</span>
+            <h3>Decisión con guardrails</h3>
+            <p>Aprobar, medir margen, registrar ejecución y atribuir resultados solo con contrafactual suficiente.</p>
+          </article>
+        </div>
+
+        <details>
+          <summary>Contrato de integración previsto con bd_replica_crm <span>+</span></summary>
+          <div>
+            <p>
+              Grano mínimo: <code>snapshot_date + project_id</code>. Campos requeridos: stock disponible,
+              valor de stock, precio/m², separaciones, ventas, caídas, leads, días en stock y benchmark.
+              La vista candidata es <code>analytics.v_pricing_project_snapshot</code>; el esquema está documentado
+              en <code>schemas/pricing_snapshot.schema.json</code>.
+            </p>
+          </div>
+        </details>
+        <details>
+          <summary>Umbral para promover un modelo de IA <span>+</span></summary>
+          <div>
+            <p>
+              Solo cuando supere a la regla V0 fuera de muestra, mantenga calibración por proyecto y no deteriore
+              margen ni equidad comercial. Hasta entonces, el modelo debe permanecer como challenger visible.
+            </p>
+          </div>
+        </details>
+      </section>
+    </main>
+
+    <footer>
+      <div><span class="brand-mark footer-mark">D/S</span><p>Data Science Systems<br />Pricing Control Tower</p></div>
+      <p>Modo demo · Las cifras no constituyen una recomendación de precio ni una tasación.</p>
+      <a href="#top">VOLVER ARRIBA ↑</a>
+    </footer>
+  </body>
+</html>

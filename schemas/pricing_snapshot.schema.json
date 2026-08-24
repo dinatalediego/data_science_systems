@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dinatalediego.github.io/data_science_systems/schemas/pricing_snapshot.schema.json",
+  "title": "Pricing project snapshot",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "snapshot_date",
+    "project_id",
+    "project_name",
+    "available_units",
+    "available_value_pen",
+    "price_m2_pen",
+    "net_sales_30d",
+    "leads_30d",
+    "separations_30d",
+    "avg_days_stock",
+    "quality_status",
+    "source_updated_at"
+  ],
+  "properties": {
+    "snapshot_date": { "type": "string", "format": "date" },
+    "project_id": { "type": "string", "minLength": 1 },
+    "project_name": { "type": "string", "minLength": 1 },
+    "phase": { "type": "string" },
+    "available_units": { "type": "integer", "minimum": 0 },
+    "available_value_pen": { "type": "number", "minimum": 0 },
+    "price_m2_pen": { "type": "number", "exclusiveMinimum": 0 },
+    "market_gap_pct": { "type": ["number", "null"] },
+    "net_sales_30d": { "type": "number" },
+    "target_sales_30d": { "type": ["number", "null"], "minimum": 0 },
+    "leads_30d": { "type": "integer", "minimum": 0 },
+    "separations_30d": { "type": "integer", "minimum": 0 },
+    "cancellations_30d": { "type": "integer", "minimum": 0 },
+    "conversion_pct": { "type": ["number", "null"], "minimum": 0, "maximum": 100 },
+    "target_conversion_pct": { "type": ["number", "null"], "minimum": 0, "maximum": 100 },
+    "avg_days_stock": { "type": "number", "minimum": 0 },
+    "quality_status": { "type": "string", "enum": ["pass", "warn", "fail"] },
+    "source_updated_at": { "type": "string", "format": "date-time" }
+  }
+}
+
