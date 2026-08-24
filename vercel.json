@@ -2,14 +2,7 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "functions": {
     "api/gateway.js": {
-      "includeFiles": [
-        "index.html",
-        "styles.css",
-        "data.js",
-        "app.js",
-        "docs/**",
-        "schemas/**"
-      ]
+      "includeFiles": "{index.html,styles.css,data.js,app.js,docs/**,schemas/**}"
     }
   },
   "routes": [
