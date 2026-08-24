@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
-      content="Pricing Control Tower: tablero demostrativo de pricing, absorción, inventario y experimentos para proyectos inmobiliarios."
+      content="Pricing Control Tower histórico: pricing, stock, minutas y experimentos para nueve proyectos inmobiliarios."
     />
     <meta name="theme-color" content="#102a2a" />
     <meta property="og:title" content="Data Science Systems · Pricing Control Tower" />
@@ -35,7 +35,7 @@
         <a href="#experimento">Experimento</a>
         <a href="#sistema">Sistema DS/BI</a>
       </nav>
-      <div class="header-state"><span></span> DEMO · V0.1</div>
+      <div class="header-state"><span></span> HISTÓRICO · V0.2 <a id="logoutButton" href="/api/logout">Salir</a></div>
     </header>
 
     <main id="main">
@@ -46,18 +46,18 @@
         </div>
         <div class="hero-copy">
           <p>
-            Un tablero para priorizar inventario, contrastar absorción y registrar el resultado de cada
-            hipótesis comercial. La versión inicial usa un dataset demostrativo y deja el contrato listo
-            para conectar las vistas reales del data warehouse.
+            Un tablero para priorizar inventario real, contrastar el ritmo de minutas y registrar el resultado
+            de cada hipótesis comercial. Esta versión utiliza métricas agregadas del Reporte Comercial de mayo
+            de 2026, con precios y stock de abril.
           </p>
           <a href="#decisiones" class="text-link">Abrir cola de decisiones <span>↘</span></a>
         </div>
       </section>
 
-      <aside class="demo-banner" aria-label="Advertencia de datos demostrativos">
-        <strong>DATOS DEMOSTRATIVOS</strong>
-        <p id="dataDisclaimer">Los proyectos están anonimizados; las cifras no son operativas.</p>
-        <span id="snapshotLabel">Corte 01 ago 2026</span>
+      <aside class="demo-banner" aria-label="Alcance de los datos históricos">
+        <strong>DATOS HISTÓRICOS REALES</strong>
+        <p id="dataDisclaimer">Métricas agregadas, sin datos personales ni operaciones identificables.</p>
+        <span id="snapshotLabel">Precios abr 2026 · actividad may 2026</span>
       </aside>
 
       <section class="dashboard-section" id="overview">
@@ -94,17 +94,17 @@
           <article>
             <span>Valor de stock</span>
             <strong id="kpiValue">—</strong>
-            <small>precio lista demostrativo</small>
+            <small>estimado: stock × precio promedio</small>
           </article>
           <article>
-            <span>Absorción neta 30d</span>
+            <span>Minutas del mes</span>
             <strong id="kpiAbsorption">—</strong>
-            <small id="kpiAbsorptionContext">unidades / mes</small>
+            <small id="kpiAbsorptionContext">mayo 2026</small>
           </article>
           <article class="kpi-accent">
             <span>Meses de stock</span>
             <strong id="kpiMonths">—</strong>
-            <small>stock ÷ absorción neta</small>
+            <small>stock disponible ÷ minutas mayo</small>
           </article>
         </div>
 
@@ -122,18 +122,18 @@
               </div>
             </header>
             <div id="scatterChart" class="chart-shell" aria-live="polite"></div>
-            <p class="chart-note">El tamaño representa valor de stock disponible. Los cuadrantes son umbrales editoriales de la demo.</p>
+            <p class="chart-note">El tamaño representa el valor estimado del stock. La línea de 18 meses es un umbral operativo, no una estimación causal.</p>
           </article>
 
           <article class="visual-panel">
             <header>
               <div>
-                <span>¿QUIÉN ESTÁ CUMPLIENDO LA VELOCIDAD?</span>
-                <h3>Absorción actual vs. objetivo</h3>
+                <span>¿QUIÉN ALCANZA EL RITMO NECESARIO?</span>
+                <h3>Minutas de mayo vs. ritmo a 12 meses</h3>
               </div>
             </header>
             <div id="absorptionChart" class="chart-shell" aria-live="polite"></div>
-            <p class="chart-note">Barra: absorción neta 30d. Marca vertical: objetivo comercial del proyecto.</p>
+            <p class="chart-note">Barra: minutas de mayo. Marca vertical: stock disponible ÷ 12; es un ritmo calculado, no una meta comercial aprobada.</p>
           </article>
         </div>
       </section>
@@ -145,8 +145,8 @@
             <h2>Priorizar la próxima conversación de pricing</h2>
           </div>
           <p>
-            La regla V0 combina meses de stock, antigüedad, brecha frente al benchmark y caídas. No sustituye
-            la aprobación comercial: ordena dónde mirar primero.
+            La regla histórica V1 combina meses de stock, prima del m² disponible frente al vendido y
+            proporción del proyecto aún disponible. No sustituye la aprobación comercial.
           </p>
         </div>
 
@@ -181,7 +181,7 @@
               <div><dt>Stock</dt><dd id="selectedStock">—</dd></div>
               <div><dt>Valor stock</dt><dd id="selectedValue">—</dd></div>
               <div><dt>Precio / m²</dt><dd id="selectedM2">—</dd></div>
-              <div><dt>Conversión</dt><dd id="selectedConversion">—</dd></div>
+              <div><dt>Minutas</dt><dd id="selectedMinutas">—</dd></div>
             </dl>
             <a class="primary-link" href="#experimento">Simular hipótesis para este proyecto <span>↘</span></a>
           </aside>
@@ -202,9 +202,9 @@
                 <th>Fase</th>
                 <th class="num">Disponibles</th>
                 <th class="num">Precio / m²</th>
-                <th class="num">Absorción 30d</th>
+                <th class="num">Minutas mayo</th>
                 <th class="num">Meses stock</th>
-                <th class="num">Días promedio</th>
+                <th class="num">Prima m²</th>
                 <th>Señal</th>
               </tr>
             </thead>
@@ -261,7 +261,7 @@
                 <span id="projectionBadge" class="signal-pill">—</span>
                 <h3 id="projectionTitle">—</h3>
               </div>
-              <strong id="projectionConfidence">DEMO</strong>
+              <strong id="projectionConfidence">SUPUESTO</strong>
             </div>
             <p id="projectionReason"></p>
             <div class="projection-price">
@@ -270,9 +270,9 @@
               <div><span>Precio / m² propuesto</span><strong id="proposedPriceM2">—</strong></div>
             </div>
             <dl class="projection-metrics">
-              <div><dt>Conversión base</dt><dd id="baseConversion">—</dd></div>
-              <div><dt>Conversión proyectada</dt><dd id="projectedConversion">—</dd></div>
-              <div><dt>Absorción proyectada</dt><dd id="projectedAbsorption">—</dd></div>
+              <div><dt>Minutas base</dt><dd id="baseMinutas">—</dd></div>
+              <div><dt>Minutas proyectadas</dt><dd id="projectedMinutas">—</dd></div>
+              <div><dt>Valor venta proyectado</dt><dd id="projectedSales">—</dd></div>
               <div><dt>Meses de stock</dt><dd id="projectedMonths">—</dd></div>
             </dl>
             <button id="adoptHypothesis" class="secondary-button" type="button">Adoptar y esperar resultado</button>
@@ -287,9 +287,9 @@
             <div class="evidence-meter"><div><span id="evidenceProgress"></span></div><p><strong id="evidenceCount">0/5</strong> resultados para revisar la regla.</p></div>
           </div>
           <form id="outcomeForm">
-            <label>Leads observados<input id="actualLeads" type="number" min="1" value="80" required /></label>
-            <label>Separaciones observadas<input id="actualSeparations" type="number" min="0" value="6" required /></label>
-            <label>Absorción neta 30d<input id="actualAbsorption" type="number" min="0" step="0.1" value="2.0" required /></label>
+            <label>Minutas observadas<input id="actualMinutas" type="number" min="0" value="3" required /></label>
+            <label>Valor vendido observado<input id="actualSalesValue" type="number" min="0" step="1000" value="1000000" required /></label>
+            <label>Stock disponible final<input id="actualStockEnd" type="number" min="0" value="20" required /></label>
             <label>Precio logrado / m²<input id="actualPriceM2" type="number" min="1" step="50" value="6000" required /></label>
             <button class="primary-button" type="submit">Registrar resultado</button>
           </form>
@@ -309,17 +309,17 @@
             <h2>Qué está operativo y qué todavía es una promesa</h2>
           </div>
           <p>
-            La aplicación separa explícitamente el artefacto demostrativo del sistema productivo que deberá
-            conectarse a `bd_replica_crm`, versionar features y validar challengers.
+            La aplicación distingue la evidencia histórica ya publicada del sistema productivo que todavía
+            deberá conectarse a `bd_replica_crm`, versionar features y validar challengers.
           </p>
         </div>
 
         <div class="system-flow" aria-label="Estado del sistema de datos y decisiones">
-          <article><span>01 · FUENTE</span><strong>Demo bundle</strong><p>9 proyectos, corte estático.</p><b class="status-ready">LISTO DEMO</b></article>
+          <article><span>01 · FUENTE</span><strong>Reporte mayo 2026</strong><p>9 proyectos, agregado histórico.</p><b class="status-ready">VERIFICADO</b></article>
           <i>→</i>
-          <article><span>02 · MÉTRICAS</span><strong>Mart de pricing</strong><p>Fórmulas y contratos definidos.</p><b class="status-ready">LISTO DEMO</b></article>
+          <article><span>02 · MÉTRICAS</span><strong>Snapshot histórico</strong><p>Stock, precios, minutas y ventas.</p><b class="status-ready">PUBLICADO</b></article>
           <i>→</i>
-          <article><span>03 · DECISIÓN</span><strong>Regla V0</strong><p>Presión auditable, sin ML.</p><b class="status-ready">ACTIVA</b></article>
+          <article><span>03 · DECISIÓN</span><strong>Regla V1</strong><p>Presión auditable, sin ML.</p><b class="status-ready">ACTIVA</b></article>
           <i>→</i>
           <article><span>04 · CHALLENGER</span><strong>Modelo ML</strong><p>Requiere historia de precio.</p><b class="status-pending">NO ENTRENADO</b></article>
           <i>→</i>
@@ -330,7 +330,7 @@
           <article>
             <span>BUSINESS INTELLIGENCE</span>
             <h3>Una definición por métrica</h3>
-            <p>Stock, valor, absorción, conversión y meses de stock con fórmula, grano, fuente y responsable.</p>
+            <p>Stock, valor estimado, minutas, precio/m² y meses de stock con fórmula, periodo y fuente.</p>
           </article>
           <article>
             <span>ANALYTICS ENGINEERING</span>
@@ -353,8 +353,9 @@
           <summary>Contrato de integración previsto con bd_replica_crm <span>+</span></summary>
           <div>
             <p>
-              Grano mínimo: <code>snapshot_date + project_id</code>. Campos requeridos: stock disponible,
-              valor de stock, precio/m², separaciones, ventas, caídas, leads, días en stock y benchmark.
+              Grano mínimo: <code>snapshot_date + project_id</code>. La versión histórica ya contiene stock,
+              precio/m², separaciones, minutas, valor vendido y balance de estacionamientos. Para operar en vivo
+              aún se requieren caídas, leads, días en stock e historia de cambios de precio.
               La vista candidata es <code>analytics.v_pricing_project_snapshot</code>; el esquema está documentado
               en <code>schemas/pricing_snapshot.schema.json</code>.
             </p>
@@ -364,7 +365,7 @@
           <summary>Umbral para promover un modelo de IA <span>+</span></summary>
           <div>
             <p>
-              Solo cuando supere a la regla V0 fuera de muestra, mantenga calibración por proyecto y no deteriore
+              Solo cuando supere a la regla V1 fuera de muestra, mantenga calibración por proyecto y no deteriore
               margen ni equidad comercial. Hasta entonces, el modelo debe permanecer como challenger visible.
             </p>
           </div>
@@ -374,7 +375,7 @@
 
     <footer>
       <div><span class="brand-mark footer-mark">D/S</span><p>Data Science Systems<br />Pricing Control Tower</p></div>
-      <p>Modo demo · Las cifras no constituyen una recomendación de precio ni una tasación.</p>
+      <p>Histórico abril–mayo 2026 · Las cifras no constituyen una recomendación vigente ni una tasación.</p>
       <a href="#top">VOLVER ARRIBA ↑</a>
     </footer>
   </body>

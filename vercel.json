@@ -1,0 +1,21 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "functions": {
+    "api/gateway.js": {
+      "includeFiles": [
+        "index.html",
+        "styles.css",
+        "data.js",
+        "app.js",
+        "docs/**",
+        "schemas/**"
+      ]
+    }
+  },
+  "routes": [
+    { "src": "/api/login", "dest": "/api/login.js" },
+    { "src": "/api/logout", "dest": "/api/logout.js" },
+    { "src": "/api/gateway", "dest": "/api/gateway.js" },
+    { "src": "/(.*)", "dest": "/api/gateway.js?path=$1" }
+  ]
+}

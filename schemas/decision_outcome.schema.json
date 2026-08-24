@@ -14,19 +14,21 @@
     "elasticity_assumption": { "type": ["number", "null"] },
     "projected": {
       "type": "object",
-      "required": ["conversion_pct", "absorption_30d", "price_m2_pen"],
+      "required": ["minutas", "sales_value_pen", "months_stock", "price_m2_pen"],
       "properties": {
-        "conversion_pct": { "type": "number", "minimum": 0, "maximum": 100 },
-        "absorption_30d": { "type": "number" },
+        "minutas": { "type": "number", "minimum": 0 },
+        "sales_value_pen": { "type": "number", "minimum": 0 },
+        "months_stock": { "type": "number", "minimum": 0 },
         "price_m2_pen": { "type": "number", "exclusiveMinimum": 0 }
       }
     },
     "actual": {
       "type": "object",
-      "required": ["conversion_pct", "absorption_30d", "price_m2_pen"],
+      "required": ["minutas", "sales_value_pen", "stock_end", "price_m2_pen"],
       "properties": {
-        "conversion_pct": { "type": "number", "minimum": 0, "maximum": 100 },
-        "absorption_30d": { "type": "number" },
+        "minutas": { "type": "number", "minimum": 0 },
+        "sales_value_pen": { "type": "number", "minimum": 0 },
+        "stock_end": { "type": "number", "minimum": 0 },
         "price_m2_pen": { "type": "number", "exclusiveMinimum": 0 }
       }
     },
@@ -34,4 +36,3 @@
     "causal_design": { "type": "string", "enum": ["none", "matched", "randomized", "staggered"] }
   }
 }
-

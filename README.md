@@ -1,71 +1,63 @@
 # Data Science Systems · Pricing Control Tower
 
-Primer sistema demostrativo de Data Science + Business Intelligence para gobernar pricing inmobiliario desde una sola interfaz:
+Sistema histórico de Data Science + Business Intelligence para gobernar pricing inmobiliario desde una sola interfaz:
 
 `dato → métrica → señal → decisión → resultado observado`
 
-## Qué contiene la v0.1
+## Qué contiene la v0.2
 
-- Portfolio de 9 proyectos con stock, valor disponible, precio/m², absorción, conversión y meses de stock.
-- Scatter de precio/m² vs. meses de stock; el tamaño representa valor de inventario.
-- Comparación de absorción neta 30d frente al objetivo comercial.
-- Cola de decisiones ordenada por una regla V0 de presión auditable.
-- Simulador de ajuste de precio con elasticidad editable.
-- Adopción de hipótesis, registro del resultado observado, persistencia local y descarga CSV.
-- Eventos de uso guardados en `localStorage` para instrumentar el flujo antes de añadir analítica remota.
-- Contratos JSON Schema, catálogo de métricas y modelo operativo DS/BI.
+- Nueve proyectos reales: Tizón y Bueno, Edificio Urbanzen, Fénix, Alicanto, Capadocia, Modena, Sialia, Matera y Torre Nápoles.
+- Stock y precios de abril de 2026; separaciones, minutas y valor vendido de mayo de 2026.
+- Scatter de precio disponible/m² frente a meses de stock; el tamaño representa valor estimado del inventario.
+- Comparación de minutas de mayo frente al ritmo calculado para agotar stock en doce meses.
+- Cola de decisiones ordenada por una regla V1 auditable.
+- Simulador de precio con elasticidad explícitamente asumida.
+- Adopción de hipótesis, registro de resultados, persistencia local y descarga CSV.
+- Acceso web mediante contraseña y cookie `HttpOnly` de ocho horas.
 
-## Estado de los datos
+## Fuente y privacidad
 
-Los proyectos se muestran anonimizados y **todas las cifras incluidas son demostrativas**. La aplicación no debe usarse todavía para ejecutar cambios comerciales. El mapeo con nombres reales debe incorporarse únicamente desde una fuente privada autorizada.
+La fuente es el **Reporte Comercial · Mayo 2026**. Solo se publican métricas agregadas por proyecto. Se excluyen clientes, asesores, documentos, teléfonos, correos y operaciones identificables.
 
-La integración productiva prevista usa un snapshot por proyecto:
+El valor de stock mostrado es una estimación:
 
-`snapshot_date + project_id`
+`stock disponible × precio promedio de las unidades disponibles`
 
-El contrato completo está en [`schemas/pricing_snapshot.schema.json`](schemas/pricing_snapshot.schema.json). Una vista candidata en `bd_replica_crm` sería `analytics.v_pricing_project_snapshot`.
+La contraseña y el secreto de sesión no están almacenados en GitHub: viven únicamente como variables sensibles de Vercel. El acceso restringe la aplicación desplegada; los agregados versionados permanecen visibles en el repositorio público por decisión del propietario.
 
-## Regla V0
+## Regla V1
 
 El `pressure_score` combina:
 
-- 45% meses de stock.
-- 25% días promedio en stock.
-- 20% brecha positiva de precio/m² frente al benchmark.
-- 10% caídas de los últimos 30 días.
+- 60% meses de stock al ritmo de minutas de mayo.
+- 25% prima positiva del m² disponible frente al m² vendido.
+- 15% proporción del proyecto que sigue disponible.
 
-No es un modelo de machine learning. Su función es crear un baseline interpretable contra el cual evaluar un challenger.
+La regla prioriza revisión. No demuestra que el precio cause la velocidad observada; la diferencia de m² también puede reflejar tipología, piso y mix.
 
 ## Arquitectura
 
 - `index.html`: superficie ejecutiva y ciclo de experimento.
-- `styles.css`: sistema visual responsive y accesible.
-- `data.js`: snapshot demostrativo reemplazable.
-- `app.js`: métricas, reglas, SVG, filtros, simulación, eventos y evidencia local.
-- `schemas/`: contratos de entrada y resultado observado.
-- `docs/metric-catalog.md`: definiciones de negocio.
-- `docs/operating-model.md`: responsabilidades y promoción de modelos.
-
-## Ejecutar localmente
-
-No existen dependencias de ejecución. Sirve la carpeta con cualquier servidor estático:
-
-```bash
-python -m http.server 4173
-```
-
-Luego abre `http://localhost:4173`.
+- `styles.css`: sistema visual responsive.
+- `data.js`: snapshot histórico agregado.
+- `app.js`: métricas, regla, SVG, filtros, simulación, eventos y evidencia local.
+- `api/login.js`: verificación de contraseña.
+- `api/gateway.js`: entrega de la aplicación solo con sesión válida.
+- `api/logout.js`: cierre de sesión.
+- `schemas/`: contratos del snapshot y del resultado observado.
+- `docs/`: catálogo y modelo operativo.
 
 ## Vercel
 
-Importa el repositorio como `Framework Preset: Other`. No necesita Build Command, Output Directory ni variables de entorno para la demo.
+Importa el repositorio con `Framework Preset: Other`. `vercel.json` enruta la interfaz y sus activos a través del gateway autenticado. Configura dos variables sensibles en Preview y Production:
 
-## Siguiente gate
+- `APP_PASSWORD`: contraseña de acceso.
+- `SESSION_SECRET`: secreto aleatorio largo para firmar la cookie.
 
-La v0.1 termina cuando el frontend, la regla y el registro de outcomes funcionan. La siguiente fase empieza solo al disponer de:
+## Limitaciones honestas
 
-1. snapshots históricos de precio e inventario;
-2. definiciones conciliadas de venta/separación/caída;
-3. una vista Gold validada contra CRM;
-4. partición temporal para comparar baseline y challenger;
-5. aprobación comercial y guardrails de margen.
+- El periodo es histórico y estático.
+- Minutas y separaciones mensuales no forman una cohorte de conversión.
+- La elasticidad del laboratorio es un supuesto, no una estimación.
+- Regresión causal, XGBoost y precio óptimo requieren historia de cambios de precio por unidad y validación temporal.
+- El siguiente gate productivo es conectar una vista Gold validada de `bd_replica_crm`.

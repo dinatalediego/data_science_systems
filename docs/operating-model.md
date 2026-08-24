@@ -14,7 +14,7 @@
 
 ## Data Science
 
-- Mantiene la regla V0 como baseline.
+- Mantiene la regla V1 como baseline.
 - Entrena challengers solo con historia de precio y outcomes comparables.
 - Evalúa por partición temporal, proyecto y tipología.
 - Documenta calibración, drift, importancia y límites causales.
@@ -30,11 +30,10 @@
 
 Un modelo puede pasar de `challenger` a `candidate` cuando:
 
-1. supera la regla V0 fuera de muestra;
+1. supera la regla V1 fuera de muestra;
 2. mantiene error y calibración aceptables por proyecto;
 3. no degrada margen ni segmentos protegidos;
 4. puede explicar la acción propuesta;
 5. tiene rollback y monitoreo de drift.
 
 Pasa a `production` únicamente después de una prueba controlada o una estrategia causal defendible.
-
